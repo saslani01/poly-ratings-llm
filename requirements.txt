@@ -1,0 +1,9 @@
+# Core dependencies
+requests>=2.31.0
+
+
+# Future LLM processing dependencies
+
+
+# API development (for later)
+
