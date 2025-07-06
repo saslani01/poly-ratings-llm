@@ -39,7 +39,6 @@ def setup_directories():
         f"{CONFIG['raw_dir']}/professors",
         f"{CONFIG['processed_dir']}/by_department",
         f"{CONFIG['processed_dir']}/by_course",
-        f"{CONFIG['processed_dir']}/embeddings"
     ]
     
     for dir_path in dirs:
