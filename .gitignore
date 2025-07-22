@@ -54,6 +54,7 @@ secrets.json
 # Large data files
 data/raw/
 data/processed/
+data/vector_db
 
 # Temporary files
 *.tmp
