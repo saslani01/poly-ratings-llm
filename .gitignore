@@ -38,9 +38,7 @@ venv.bak/
 *~
 
 # Logs
-logs/*.log
-logs/*.json
-
+*.log
 
 # Environment variables
 .env
@@ -50,11 +48,6 @@ logs/*.json
 # API Keys 
 config/keys.json
 secrets.json
-
-# Large data files
-data/raw/
-data/processed/
-data/vector_db
 
 # Temporary files
 *.tmp
