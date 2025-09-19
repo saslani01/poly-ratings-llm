@@ -38,7 +38,7 @@ Visit `http://localhost:8000` to use the web interface.
 
 ## Example Queries
 
-- "H"ow is Andrew Timothy course structure?"
+- "How is Andrew Timothy course structure?"
 - "How is Theresa Migler exams?"
 - "How is Stephen Beard personlity?"
 - "What is the workload like for Jefferson Clarke in ART 122?"
