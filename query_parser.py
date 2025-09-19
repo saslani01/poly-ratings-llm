@@ -22,7 +22,7 @@ class QueryParser:
 Query: {query}
 
 Extract:
-- professor: professor name or null
+- professor: professor name or null; remove dr. prof, etc. only first and last name
 - course: course code (like "CSC 202", "PHIL 126") or null  
 - aspect: one ONLY from "teaching_style", "grading_exams", "workload", "accessibility", "course_structure", "personality", "overall"; Do not choose an aspect out of this list
 
