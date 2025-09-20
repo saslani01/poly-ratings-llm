@@ -99,6 +99,10 @@ Ready for deployment on platforms like Railway
 - Static file serving
 - Environment variable configuration
 
+## Data Updates
+
+Currently uses a "nuclear" approach for data updates - the entire database is rebuilt from scratch when updating. This ensures data consistency but requires reprocessing all reviews with AI (several days and ~$15 in API costs).
+
 ## API Costs
 
 - **Processing**: ~$15 for 50000+ reviews
@@ -112,10 +116,17 @@ Professor review data is sourced from [polyratings.dev](https://polyratings.dev/
 
 This project is open source under AGPL-3.0. Areas for contribution:
 
-- Web interface improvements
-- Mobile app development
-- Performance optimizations
-- Deployment infrastructure
+- **Incremental Data Updates**: Currently requires full database rebuild for updates. Could implement:
+  - Fetch only new/updated professor data since last update
+  - Process only new reviews rather than reprocessing everything
+  - Selective re-chunking when AI prompts are improved
+  - Automated update scheduling (weekly/monthly)
+  - Database versioning to track data freshness
+- **Better Prompt Engineering and Models**
+- **Web interface improvements**
+- **Mobile app development** 
+- **Performance optimizations**
+- **Deployment infrastructure**
 
 To contribute:
 1. Fork the repository
