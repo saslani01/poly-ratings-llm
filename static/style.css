@@ -269,14 +269,33 @@ button:active {
     margin-top: 5px;
 }
 
-.footer a {
+.footer .footer-small {
+    font-size: 11px;
+    opacity: 0.6;
+    margin-top: 8px;
+    line-height: 1.4;
+}
+
+.footer .footer-small a {
+    color: white;
+    text-decoration: none;
+    font-weight: normal;
+}
+
+.footer .footer-small a:hover {
     color: var(--cal-poly-gold);
+    text-decoration: none;
+}
+
+.footer a {
+    color: rgba(255, 255, 255, 0.8);
     text-decoration: none;
     font-weight: 600;
 }
 
 .footer a:hover {
-    text-decoration: underline;
+    color: var(--cal-poly-gold);
+    text-decoration: none;
 }
 
 .mustang-accent {
@@ -438,6 +457,11 @@ button:active {
         margin-top: 8px;
     }
     
+    .footer .footer-small {
+        font-size: 10px;
+        margin-top: 8px;
+    }
+    
     .footer .disclaimer {
         font-size: 10px;
         margin-top: 5px;
@@ -512,5 +536,9 @@ button:active {
     .footer {
         padding: 20px 15px;
         border-radius: 20px 20px 0 0;
+    }
+    
+    .footer .footer-small {
+        font-size: 9px;
     }
 }
