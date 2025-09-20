@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
 app.py - FastAPI web API for professor review system
-Place this in your poly-ratings-llm folder
 """
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel, Field
 from synthesizer import ProfessorSynthesizer
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -23,14 +24,36 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# only from my domain
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://poly-ratings-llm-production.up.railway.app"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# Add validation error handler
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle Pydantic validation errors"""
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "Validation failed",
+            "errors": exc.errors(),
+            "message": "Request data does not meet validation requirements"
+        }
+    )
+
 synthesizer = ProfessorSynthesizer("data/professors.db")
 
 class QueryRequest(BaseModel):
-    query: str
+    query: str = Field(..., max_length=100, min_length=1)
 
 class QueryResponse(BaseModel):
     query: str
@@ -49,7 +72,7 @@ async def query_professor(request: Request, query_request: QueryRequest):
     """
     Query professor reviews using AI analysis
     
-    - **query**: Natural language question about a professor
+    - **query**: Natural language question about a professor (max 10 characters for testing)
     """
     try:
         if not query_request.query.strip():

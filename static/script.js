@@ -8,12 +8,12 @@ function formatResponse(rawResponse) {
         
         if (index === 0 && section.includes('Professor ')) {
             const lines = section.split('\n');
-            formattedHTML += `<h3>${lines[0]}</h3>`;
+            formattedHTML += `<h3 class="scroll-container">${lines[0]}</h3>`;
             return;
         }
         
         if (section.includes('Basic Stats')) {
-            formattedHTML += '<div class="stats-section">';
+            formattedHTML += '<div class="stats-section scroll-container">';
             formattedHTML += '<h4>📊 Basic Stats (out of 4.0)</h4>';
             
             const lines = section.split('\n').slice(1); 
@@ -35,7 +35,7 @@ function formatResponse(rawResponse) {
         }
         
         if (section.includes('Review Excerpts Used:')) {
-            formattedHTML += '<div class="excerpts-section">';
+            formattedHTML += '<div class="excerpts-section scroll-container">';
             formattedHTML += '<h4>📝 Review Excerpts Used</h4>';
             
             const lines = section.split('\n').slice(1); 
@@ -46,7 +46,7 @@ function formatResponse(rawResponse) {
                         const aspect = match[1];
                         const content = match[2];
                         formattedHTML += `
-                            <div class="excerpt-item">
+                            <div class="excerpt-item scroll-container">
                                 <span class="excerpt-tag">${aspect}</span>
                                 <div class="excerpt-text">"${content}"</div>
                             </div>
@@ -60,7 +60,7 @@ function formatResponse(rawResponse) {
         
         if (!section.includes('Basic Stats') && !section.includes('Review Excerpts') && !section.includes('Professor ')) {
             formattedHTML += `
-                <div class="ai-response">
+                <div class="ai-response scroll-container">
                     <h4>🤖 AI Analysis</h4>
                     <div>${section.replace(/\n/g, '<br>')}</div>
                 </div>

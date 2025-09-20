@@ -129,7 +129,8 @@ Student Review Excerpts:
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3,
-                max_tokens=300
+                max_tokens=300,
+                timeout=30
             )
             
             answer_text = response.choices[0].message.content.strip()
