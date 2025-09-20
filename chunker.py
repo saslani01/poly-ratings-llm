@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-chunk.py - Simple review chunking with database integration
+chunk.py - Review chunking with database integration
 """
 
 import json
@@ -27,7 +27,7 @@ class ReviewChunkProcessor:
     def _chunk_review(self, review_text):
         cleaned_text = self._clean_text(review_text)
         
-        prompt = f"""Extract aspects from this professor review. Return JSON array only:
+        prompt = f"""Extract aspects from this professor review. Return JSON array only: extract anything giving insight about professor including slang but not physical/inappropriate
 [{{"content": "text discussing aspect", "aspect": "teaching_style|grading_exams|workload|accessibility|course_structure|personality|overall", "sentiment": "positive|negative|neutral"}}]
 
 {cleaned_text}"""
@@ -39,7 +39,7 @@ class ReviewChunkProcessor:
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
-                max_tokens=800
+                max_tokens=1000
             )
             
             tokens += response.usage.completion_tokens
@@ -48,11 +48,10 @@ class ReviewChunkProcessor:
             if content.startswith('```json'):
                 content = content.replace('```json', '').replace('```', '').strip()
             
-            return json.loads(content), tokens
+            return json.loads(content), tokens, content
             
         except Exception as e:
-            print(f"Error: {e}")
-            return [], 0
+            return [], 0, f"Error: {e}"
     
     def _store_chunks(self, review_id, chunks_data, tokens):
         try:
@@ -73,57 +72,27 @@ class ReviewChunkProcessor:
             cursor.execute("SELECT COUNT(*) FROM review_chunks WHERE review_id = ?", (review_id,))
             return cursor.fetchone()[0] > 0
 
-    def process_professor_reviews(self, professor_id):
+    def process_reviews(self, professor_id=None, limit=None):
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("""
-                SELECT r.id, r.rating_text, p.first_name, p.last_name, r.course_code
-                FROM reviews r
-                JOIN professors p ON r.professor_id = p.id
-                WHERE r.professor_id = ? AND r.rating_text IS NOT NULL AND r.rating_text != ''
-            """, (professor_id,))
-            reviews = cursor.fetchall()
-        
-        if not reviews:
-            return {"processed": 0, "failed": 0, "total": 0, "tokens": 0}
-        
-        professor_name = f"{reviews[0][2]} {reviews[0][3]}"
-        processed = failed = total_tokens = 0
-        
-        print(f"Processing {len(reviews)} reviews for {professor_name}")
-        
-        for i, (review_id, text, _, _, course) in enumerate(reviews):
-            print(f"[{i+1}/{len(reviews)}] {course or 'N/A'}")
             
-            if self._already_processed(review_id):
-                print("Already processed - skipping")
-                processed += 1
-                continue
-            
-            chunks_data, tokens = self._chunk_review(text)
-            
-            if chunks_data and self._store_chunks(review_id, chunks_data, tokens):
-                processed += 1
-                total_tokens += tokens
-                print(f"{len(chunks_data)} chunks, {tokens} tokens")
+            if professor_id:
+                cursor.execute("""
+                    SELECT r.id, r.rating_text, p.first_name, p.last_name, r.course_code
+                    FROM reviews r
+                    JOIN professors p ON r.professor_id = p.id
+                    WHERE r.professor_id = ? AND r.rating_text IS NOT NULL AND r.rating_text != ''
+                """, (professor_id,))
             else:
-                failed += 1
-                print("Failed")
-        
-        print(f"Completed {professor_name}: {processed}/{len(reviews)} processed, {total_tokens} tokens")
-        return {"processed": processed, "failed": failed, "total": len(reviews), "tokens": total_tokens}
-
-    def process_all_reviews(self, limit=None):
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            limit_clause = f"LIMIT {limit}" if limit else ""
-            cursor.execute(f"""
-                SELECT r.id, r.rating_text, p.first_name, p.last_name, r.course_code
-                FROM reviews r
-                JOIN professors p ON r.professor_id = p.id
-                WHERE r.rating_text IS NOT NULL AND r.rating_text != ''
-                {limit_clause}
-            """)
+                limit_clause = f"LIMIT {limit}" if limit else ""
+                cursor.execute(f"""
+                    SELECT r.id, r.rating_text, p.first_name, p.last_name, r.course_code
+                    FROM reviews r
+                    JOIN professors p ON r.professor_id = p.id
+                    WHERE r.rating_text IS NOT NULL AND r.rating_text != ''
+                    {limit_clause}
+                """)
+            
             reviews = cursor.fetchall()
         
         if not reviews:
@@ -131,41 +100,62 @@ class ReviewChunkProcessor:
         
         processed = failed = total_tokens = 0
         
-        with open("chunking.log", "w", encoding="utf-8") as log_file:
+        with open("chunking.log", "w", encoding="utf-8", newline='\n') as log_file:
+            log_file.write(f"Processing {len(reviews)} reviews\n\n")
+            
             for i, (review_id, text, first_name, last_name, course) in enumerate(reviews):
                 professor = f"{first_name} {last_name}"
                 
                 print(f"[{i+1}/{len(reviews)}] {professor} ({course or 'N/A'})")
                 log_file.write(f"[{i+1}/{len(reviews)}] {professor} ({course or 'N/A'})\n")
+                log_file.write(f"Review ID: {review_id}\n")
+                log_file.write(f"Original text: {text}\n")
                 
                 if self._already_processed(review_id):
                     print("Already processed - skipping")
-                    log_file.write("Already processed - skipping\n")
+                    log_file.write("Already processed - skipping\n\n")
                     processed += 1
                     continue
                 
-                chunks_data, tokens = self._chunk_review(text)
+                chunks_data, tokens, llm_response = self._chunk_review(text)
+                
+                log_file.write(f"Full LLM response: {llm_response}\n")
                 
                 if chunks_data and self._store_chunks(review_id, chunks_data, tokens):
                     processed += 1
                     total_tokens += tokens
                     msg = f"{len(chunks_data)} chunks, {tokens} tokens"
                     print(msg)
-                    log_file.write(msg + "\n")
+                    log_file.write(f"SUCCESS: {msg}\n")
                 else:
                     failed += 1
                     print("Failed")
-                    log_file.write("Failed\n")
+                    log_file.write("FAILED\n")
+                    
+                    # Log failures to separate file
+                    with open("chunking_failures.log", "a", encoding="utf-8", newline='\n') as fail_log:
+                        fail_log.write(f"[{i+1}/{len(reviews)}] {professor} ({course or 'N/A'})\n")
+                        fail_log.write(f"Review ID: {review_id}\n")
+                        fail_log.write(f"Original text: {text}\n")
+                        fail_log.write(f"Full LLM response: {llm_response}\n")
+                        fail_log.write("="*80 + "\n\n")
+                
+                log_file.write("\n" + "="*80 + "\n\n")
                 
                 if (i + 1) % 100 == 0:
-                    print(f"Progress: {i+1}/{len(reviews)}")
                     log_file.flush()
         
         return {"processed": processed, "failed": failed, "total": len(reviews), "tokens": total_tokens}
     
 def main():
     processor = ReviewChunkProcessor("data/professors.db")
-    result = processor.process_all_reviews()
+    
+    # Process all reviews
+    result = processor.process_reviews()
+    
+    # Or process specific professor
+    # result = processor.process_reviews(professor_id=123)
+    
     print(f"Results: {result['processed']}/{result['total']} processed, {result['tokens']} tokens")
 
 if __name__ == "__main__":
