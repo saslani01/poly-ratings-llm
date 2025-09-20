@@ -151,10 +151,10 @@ def main():
     processor = ReviewChunkProcessor("data/professors.db")
     
     # Process all reviews
-    result = processor.process_reviews()
+    #result = processor.process_reviews()
     
     # Or process specific professor
-    # result = processor.process_reviews(professor_id=123)
+    result = processor.process_reviews(professor_id="88de09b4-443f-4b32-b428-92c6aa35952e")
     
     print(f"Results: {result['processed']}/{result['total']} processed, {result['tokens']} tokens")
 
