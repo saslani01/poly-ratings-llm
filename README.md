@@ -103,10 +103,10 @@ Ready for deployment on platforms like Railway
 
 Currently uses a "nuclear" approach for data updates - the entire database is rebuilt from scratch when updating. This ensures data consistency but requires reprocessing all reviews with AI (several days and ~$15 in API costs).
 
-## API Costs
+## API Costs (Approximations)
 
 - **Processing**: ~$15 for 50000+ reviews
-- **Queries**: ~$0.0001-0.001 per question
+- **Queries**: ~$0.0001-0.001 per question 
 
 ## Data Source
 
@@ -146,7 +146,7 @@ You should have received a copy of the GNU Affero General Public License along w
 
 ## Disclaimer
 
-ProfGPT is an educational tool that uses AI to analyze professor reviews. The AI can make mistakes, and results should be considered alongside other factors when making academic decisions. This project is not officially affiliated with Cal Poly.
+ProfGPT is an educational tool that uses AI to analyze professor reviews. The AI can make mistakes, and results should be considered alongside other factors when making academic decisions. This project is not officially affiliated with Cal Poly. This software is provided 'as is' without any warranties or guarantees of any kind.
 
 ## Contact
 
