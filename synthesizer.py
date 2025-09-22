@@ -51,7 +51,7 @@ class ProfessorSynthesizer:
 Basic Stats (out of 4.0):
 • Overall Rating: {prof_info['overall_rating']}/4
 • Material Clarity: {prof_info['material_clear']}/4  
-• Student Difficulties: {prof_info['student_difficulties']}/4
+• Recognizing Student Difficulties: {prof_info['student_difficulties']}/4
 • Number of Evaluations: {prof_info['num_evals']}
 
 """
