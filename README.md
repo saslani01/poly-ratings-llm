@@ -4,7 +4,7 @@ AI-powered analysis of Cal Poly professor reviews using OpenAI GPT models. Query
 
 ## Features
 
-- 🔍 **Natural Language Queries**: Ask questions like "How is John Smith's teaching style?"
+- 🔍 **Natural Language Queries**: Ask questions like "How is Dr. Beard personality?"
 - 🤖 **AI-Powered Analysis**: GPT-4o processes reviews into categorized insights
 - 📊 **Aspect-Based Reviews**: Teaching style, grading, workload, accessibility, course structure, personlity and overal.
 - 💾 **Fast Local Storage**: SQLite database for instant queries
@@ -83,7 +83,7 @@ python fetcher.py --prof "professor-id"
 # Show database stats
 python fetcher.py --stats
 
-# Process reviews with AI. Takes a long time to process 50,000 reviews, so you may want to use process_professor_reviews() for testing
+# Process reviews with AI. Takes a long time to process 50,000 reviews, so you may want to use maybe a few professor by id if just exploring/testing
 python chunker.py
 
 # Run web application
