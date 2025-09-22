@@ -5,7 +5,6 @@ app.py - FastAPI web API for professor review system
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field
 from synthesizer import ProfessorSynthesizer
@@ -22,15 +21,6 @@ app = FastAPI(
     title="Cal Poly Professor Review API",
     description="AI-powered professor review analysis system for Cal Poly",
     version="1.0.0"
-)
-
-# only from my domain
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://poly-ratings-llm-production.up.railway.app"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -72,7 +62,7 @@ async def query_professor(request: Request, query_request: QueryRequest):
     """
     Query professor reviews using AI analysis
     
-    - **query**: Natural language question about a professor (max 10 characters for testing)
+    - **query**: Natural language question about a professor
     """
     try:
         if not query_request.query.strip():

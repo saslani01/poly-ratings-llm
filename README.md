@@ -1,4 +1,4 @@
-# ProfGPT
+# ProfGPT🐎 [Try the BETA Version Now!](https://poly-ratings-llm-production.up.railway.app/)
 
 AI-powered analysis of Cal Poly professor reviews using OpenAI GPT models. Query professors in natural language and get intelligent insights from student reviews.
 
@@ -57,11 +57,12 @@ Visit `http://localhost:8000` to use the web interface.
 ## Database Schema
 
 ```sql
-professors: id, name, department, ratings, num_evals
-reviews: id, professor_id, course_code, rating_text, grade
-review_chunks: review_id, aspect, content, sentiment
-courses: code, name, department
-fetch_logs: system logs and errors
+professors: id, first_name, last_name, department, overall_ratings, material_clear, student_difficulties, num_evals, created_at
+reviews: id, professor_id, course_code, text, grade_level, course_type, rating_text, post_date, cteated_at
+review_chunks: id, review_id, aspect, content, sentiment, tokens_used, created_at
+courses: code, name, department, created_at
+fetch_logs: id, action, status, message, professor_id, timestamp
+professors_fts: name, professor_id
 ```
 
 ## Configuration
@@ -91,7 +92,7 @@ python app.py
 
 ## Deployment
 
-Ready for deployment on platforms like Railway
+Deployed on Railway
 
 - Rate limiting to prevent API abuse
 - Mobile-responsive Cal Poly-themed interface
@@ -103,7 +104,7 @@ Ready for deployment on platforms like Railway
 
 Currently uses a "nuclear" approach for data updates - the entire database is rebuilt from scratch when updating. This ensures data consistency but requires reprocessing all reviews with AI (several days and ~$15 in API costs).
 
-## API Costs (Approximations)
+## API Costs (Approx.)
 
 - **Processing**: ~$15 for 50000+ reviews
 - **Queries**: ~$0.0001-0.001 per question 
@@ -122,10 +123,12 @@ This project is open source under AGPL-3.0. Areas for contribution:
   - Selective re-chunking when AI prompts are improved
   - Automated update scheduling (weekly/monthly)
   - Database versioning to track data freshness
+- **Performance optimizations**
+- **Chatbot Memeory**
+- **Comparison of professors feature**
 - **Better Prompt Engineering and Models**
 - **Web interface improvements**
 - **Mobile app development** 
-- **Performance optimizations**
 - **Deployment infrastructure**
 
 To contribute:
