@@ -260,28 +260,6 @@ button:active {
     overflow-wrap: break-word;
 }
 
-.scroll-container {
-    position: relative;
-}
-
-.scroll-container::after {
-    content: "→";
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8));
-    padding-left: 20px;
-    color: var(--cal-poly-gray);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
-.scroll-container:hover::after {
-    opacity: 1;
-}
-
 .loading { 
     color: var(--cal-poly-gray); 
     font-style: italic; 
