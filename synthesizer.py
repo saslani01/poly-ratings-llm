@@ -9,7 +9,6 @@ import os
 from dotenv import load_dotenv
 from query_parser import QueryParser
 from retriever import ChunkRetriever
-import json
 
 load_dotenv()
 
@@ -55,13 +54,13 @@ class ProfessorSynthesizer:
         print(f"Resolved: {resolved_prof_course}")
         
         if not resolved_prof_course["professor_id"]:
-            return json.dumps({"error": "Professor not found in database"}), 0
+            return {"error": "Professor not found in database"}, 0
         
         resolved_prof_course["original_query"] = user_query
 
         prof_info = self.get_numerical_professor_info(resolved_prof_course["professor_id"])
         if not prof_info:
-            return json.dumps({"error": "Professor information not available"}), 0
+            return {"error": "Professor information not available"}, 0
         
         chunks = self.retriever.get_chunks(
             resolved_prof_course["professor_id"], 
@@ -82,11 +81,11 @@ class ProfessorSynthesizer:
                 "excerpts": [],
                 "analysis": "No Review Excerpts found for this query."
             }
-            return json.dumps(response_data), 0
+            return response_data, 0
                 
         response_data, tokens_used = self.generate_summary(prof_info, chunks, resolved_prof_course)
         
-        return json.dumps(response_data), tokens_used
+        return response_data, tokens_used
     
     def filter_chunks_by_aspect(self, chunks, target_aspect):
         """Filter chunks by aspect, fallback to 'overall' if no matches found"""
