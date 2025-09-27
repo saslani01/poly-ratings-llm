@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 from query_parser import QueryParser
 from retriever import ChunkRetriever
+import json
 
 load_dotenv()
 
@@ -44,18 +45,6 @@ class ProfessorSynthesizer:
                 "num_evals": row[6]
             }
     
-    def format_basic_stats(self, prof_info):
-        """Format basic professor stats"""
-        return f"""Professor {prof_info['name']} - {prof_info['department']}
-
-Basic Stats (out of 4.0):
-• Overall Rating: {prof_info['overall_rating']}/4
-• Material Clarity: {prof_info['material_clear']}/4  
-• Recognizing Student Difficulties: {prof_info['student_difficulties']}/4
-• Number of Evaluations: {prof_info['num_evals']}
-
-"""
-    
     def process_query(self, user_query):
         """Main pipeline: parse -> resolve -> get chunks -> generate answer"""
         
@@ -66,15 +55,13 @@ Basic Stats (out of 4.0):
         print(f"Resolved: {resolved_prof_course}")
         
         if not resolved_prof_course["professor_id"]:
-            response = "Professor not found in database"
-            return response, 0
+            return json.dumps({"error": "Professor not found in database"}), 0
         
         resolved_prof_course["original_query"] = user_query
 
         prof_info = self.get_numerical_professor_info(resolved_prof_course["professor_id"])
         if not prof_info:
-            response = "Professor information not available"
-            return response, 0
+            return json.dumps({"error": "Professor information not available"}), 0
         
         chunks = self.retriever.get_chunks(
             resolved_prof_course["professor_id"], 
@@ -84,12 +71,22 @@ Basic Stats (out of 4.0):
         )
         
         if not chunks:
-            response = self.format_basic_stats(prof_info) + "No Review Excerpts found for this query."
-            return response, 0
+            response_data = {
+                "professor": prof_info,
+                "stats": {
+                    "overall_rating": prof_info["overall_rating"],
+                    "material_clear": prof_info["material_clear"],
+                    "student_difficulties": prof_info["student_difficulties"],
+                    "num_evals": prof_info["num_evals"]
+                },
+                "excerpts": [],
+                "analysis": "No Review Excerpts found for this query."
+            }
+            return json.dumps(response_data), 0
                 
-        response, tokens_used = self.generate_summary(prof_info, chunks, resolved_prof_course)
+        response_data, tokens_used = self.generate_summary(prof_info, chunks, resolved_prof_course)
         
-        return response, tokens_used
+        return json.dumps(response_data), tokens_used
     
     def filter_chunks_by_aspect(self, chunks, target_aspect):
         """Filter chunks by aspect, fallback to 'overall' if no matches found"""
@@ -114,7 +111,18 @@ Basic Stats (out of 4.0):
         filtered_chunks = self.filter_chunks_by_aspect(chunks, resolved["aspect"])
         
         if not filtered_chunks:
-            return self.format_basic_stats(prof_info) + "No specific review excerpts available for this query.", 0
+            response_data = {
+                "professor": prof_info,
+                "stats": {
+                    "overall_rating": prof_info["overall_rating"],
+                    "material_clear": prof_info["material_clear"],
+                    "student_difficulties": prof_info["student_difficulties"],
+                    "num_evals": prof_info["num_evals"]
+                },
+                "excerpts": [],
+                "analysis": "No specific review excerpts available for this query."
+            }
+            return response_data, 0
         
         prompt = f"""Based on the following student review excerpts about Professor {prof_info['name']} from {prof_info['department']} department, answer this question: "{resolved.get('original_query', 'Tell me about this professor?')}"
 
@@ -138,13 +146,19 @@ Student Review Excerpts:
             token_usage = response.usage
             total_tokens = token_usage.total_tokens
             
-            chunks_section = "\n\nReview Excerpts Used:"
-            for chunk in filtered_chunks:
-                chunks_section += f"\n• [{chunk['aspect']}] {chunk['content']}"
+            response_data = {
+                "professor": prof_info,
+                "stats": {
+                    "overall_rating": prof_info["overall_rating"],
+                    "material_clear": prof_info["material_clear"],
+                    "student_difficulties": prof_info["student_difficulties"],
+                    "num_evals": prof_info["num_evals"]
+                },
+                "excerpts": [{"aspect": chunk["aspect"], "content": chunk["content"]} for chunk in filtered_chunks],
+                "analysis": answer_text
+            }
             
-            final_response = self.format_basic_stats(prof_info) + answer_text + chunks_section
-            
-            return final_response, total_tokens
+            return response_data, total_tokens
             
         except Exception as e:
-            return f"Error generating answer: {e}", 0
+            return {"error": f"Error generating answer: {e}"}, 0
