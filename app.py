@@ -47,7 +47,7 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     query: str
-    response: str
+    response: dict
     timestamp: str
     tokens_used: int = 0
 

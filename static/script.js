@@ -1,69 +1,57 @@
-function formatResponse(rawResponse) {
-    try {
-        const data = JSON.parse(rawResponse);
-        
-        if (data.error) {
-            return `<div class="error">${data.error}</div>`;
-        }
-        
-        let formattedHTML = '';
-        
-        // Professor header
-        formattedHTML += `<h3>Professor ${data.professor.name} - ${data.professor.department}</h3>`;
-        
-        // Basic stats section
-        formattedHTML += '<div class="stats-section">';
-        formattedHTML += '<h4>📊 Basic Stats (out of 4.0)</h4>';
-        formattedHTML += `
-            <div class="rating-item">
-                <span class="rating-label">Overall Rating</span>
-                <span class="rating-value">${data.stats.overall_rating}/4.0</span>
-            </div>
-            <div class="rating-item">
-                <span class="rating-label">Material Clarity</span>
-                <span class="rating-value">${data.stats.material_clear}/4.0</span>
-            </div>
-            <div class="rating-item">
-                <span class="rating-label">Recognizing Student Difficulties</span>
-                <span class="rating-value">${data.stats.student_difficulties}/4.0</span>
-            </div>
-            <div class="rating-item">
-                <span class="rating-label">Number of Evaluations</span>
-                <span class="rating-value">${data.stats.num_evals}</span>
-            </div>
-        `;
-        formattedHTML += '</div>';
-        
-        // AI Analysis section
-        formattedHTML += `
-            <div class="ai-response">
-                <h4>🤖 AI Analysis</h4>
-                <div>${data.analysis}</div>
-            </div>
-        `;
-        
-        // Review excerpts section
-        if (data.excerpts && data.excerpts.length > 0) {
-            formattedHTML += '<div class="excerpts-section">';
-            formattedHTML += '<h4>📝 Review Excerpts Used</h4>';
-            
-            data.excerpts.forEach(excerpt => {
-                formattedHTML += `
-                    <div class="excerpt-item">
-                        <span class="excerpt-tag">${excerpt.aspect}</span>
-                        <div class="excerpt-text">"${excerpt.content}"</div>
-                    </div>
-                `;
-            });
-            formattedHTML += '</div>';
-        }
-        
-        return formattedHTML;
-        
-    } catch (e) {
-        // Fallback for non-JSON responses
-        return `<div class="ai-response"><h4>🤖 Response</h4><div>${rawResponse}</div></div>`;
+function formatResponse(data) {
+    if (data.error) {
+        return `<div class="error">${data.error}</div>`;
     }
+    
+    let formattedHTML = '';
+    
+    formattedHTML += `<h3>Professor ${data.professor.name} - ${data.professor.department}</h3>`;
+    
+    formattedHTML += '<div class="stats-section">';
+    formattedHTML += '<h4>📊 Basic Stats (out of 4.0)</h4>';
+    formattedHTML += `
+        <div class="rating-item">
+            <span class="rating-label">Overall Rating</span>
+            <span class="rating-value">${data.stats.overall_rating}/4.0</span>
+        </div>
+        <div class="rating-item">
+            <span class="rating-label">Material Clarity</span>
+            <span class="rating-value">${data.stats.material_clear}/4.0</span>
+        </div>
+        <div class="rating-item">
+            <span class="rating-label">Recognizing Student Difficulties</span>
+            <span class="rating-value">${data.stats.student_difficulties}/4.0</span>
+        </div>
+        <div class="rating-item">
+            <span class="rating-label">Number of Evaluations</span>
+            <span class="rating-value">${data.stats.num_evals}</span>
+        </div>
+    `;
+    formattedHTML += '</div>';
+    
+    formattedHTML += `
+        <div class="ai-response">
+            <h4>🤖 AI Analysis</h4>
+            <div>${data.analysis}</div>
+        </div>
+    `;
+    
+    if (data.excerpts && data.excerpts.length > 0) {
+        formattedHTML += '<div class="excerpts-section">';
+        formattedHTML += '<h4>📝 Review Excerpts Used</h4>';
+        
+        data.excerpts.forEach(excerpt => {
+            formattedHTML += `
+                <div class="excerpt-item">
+                    <span class="excerpt-tag">${excerpt.aspect}</span>
+                    <div class="excerpt-text">"${excerpt.content}"</div>
+                </div>
+            `;
+        });
+        formattedHTML += '</div>';
+    }
+    
+    return formattedHTML;
 }
 
 document.getElementById('queryForm').onsubmit = async function(e) {
