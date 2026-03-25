@@ -4,12 +4,12 @@ AI-powered analysis of Cal Poly professor reviews using OpenAI GPT models. Query
 
 ## Features
 
-- 🔍 **Natural Language Queries**: Ask questions like "How is Dr. Beard personality?"
-- 🤖 **AI-Powered Analysis**: GPT-4o processes reviews into categorized insights
-- 📊 **Aspect-Based Reviews**: Teaching style, grading, workload, accessibility, course structure, personlity and overal.
-- 💾 **Fast Local Storage**: SQLite database for instant queries
-- 🌐 **Web Interface**: Beautiful Cal Poly-themed web app with mobile support
-- ⚡ **Rate Limited**: Built-in protection against API abuse
+- **Natural Language Queries**: Ask questions like "How is Dr. Beard personality?"
+- **AI-Powered Analysis**: GPT-4o processes reviews into categorized insights
+- **Aspect-Based Reviews**: Teaching style, grading, workload, accessibility, course structure, personlity and overal.
+- **Fast Local Storage**: SQLite database for instant queries
+- **Web Interface**: Beautiful Cal Poly-themed web app with mobile support
+- **Rate Limited**: Built-in protection against API abuse
 
 ## Quick Start
 
@@ -102,7 +102,7 @@ Deployed on Railway
 
 ## Data Updates
 
-Currently uses a "nuclear" approach for data updates - the entire database is rebuilt from scratch when updating. This ensures data consistency but requires reprocessing all reviews with AI (several days and ~$15 in API costs).
+Currently, this database is not automaically updated when new reviews uploaded to polyratings. A better deployment strategy for sqlite database (attaching a seprate volume to Railway) as well as synchornization between two databases are on the way!
 
 ## API Costs (Approx.)
 
