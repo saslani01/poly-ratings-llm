@@ -117,19 +117,14 @@ Professor review data is sourced from [polyratings.dev](https://polyratings.dev/
 
 This project is open source under AGPL-3.0. Areas for contribution:
 
-- **Incremental Data Updates**: Currently requires full database rebuild for updates. Could implement:
-  - Fetch only new/updated professor data since last update
-  - Process only new reviews rather than reprocessing everything
-  - Selective re-chunking when AI prompts are improved
-  - Automated update scheduling (weekly/monthly)
-  - Database versioning to track data freshness
+- **Incremental Data Updates (Automated update scheduling (weekly/monthly)**
 - **Performance optimizations**
 - **Chatbot Memeory**
 - **Comparison of professors feature**
 - **Better Prompt Engineering and Models**
 - **Web interface improvements**
 - **Mobile app development** 
-- **Deployment infrastructure**
+- **Deployment infrastructure (especially the hosting of database on github)**
 
 To contribute:
 1. Fork the repository
