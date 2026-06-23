@@ -15,6 +15,7 @@ from slowapi.errors import RateLimitExceeded
 import os
 from datetime import datetime
 
+### set up ###
 limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
@@ -22,14 +23,11 @@ app = FastAPI(
     description="AI-powered professor review analysis system for Cal Poly",
     version="1.0.0"
 )
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-# Add validation error handler
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle Pydantic validation errors"""
     return JSONResponse(
         status_code=422,
@@ -40,8 +38,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         }
     )
 
+### synthesizer ###
 synthesizer = ProfessorSynthesizer("data/professors.db")
 
+### req and res models ###
 class QueryRequest(BaseModel):
     query: str = Field(..., max_length=100, min_length=1)
 
@@ -51,37 +51,35 @@ class QueryResponse(BaseModel):
     timestamp: str
     tokens_used: int = 0
 
+### routes ###
 @app.get("/")
-async def home():
+def home():
     """Serve the main web interface"""
     return FileResponse("templates/index.html")
 
 @app.post("/api/query", response_model=QueryResponse)
 @limiter.limit("10/minute")  # 10 queries per minute per IP address
-async def query_professor(request: Request, query_request: QueryRequest):
+def query_professor(request: Request, query_request: QueryRequest):
     """
     Query professor reviews using AI analysis
     
     - **query**: Natural language question about a professor
     """
-    try:
-        if not query_request.query.strip():
-            raise HTTPException(status_code=400, detail="Query cannot be empty")
-        
-        response, tokens_used = synthesizer.process_query(query_request.query)
-        
-        return QueryResponse(
-            query=query_request.query,
-            response=response,
-            timestamp=datetime.now().isoformat(),
-            tokens_used=tokens_used
-        )
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
+
+    response, tokens_used = synthesizer.process_query(query_request.query)
+
+    if "error" in response:
+        raise HTTPException(status_code=response["code"], detail=response["error"])
+
+    return QueryResponse(
+        query=query_request.query,
+        response=response,
+        timestamp=datetime.now().isoformat(),
+        tokens_used=tokens_used
+    )
 
 @app.get("/api/health")
-async def health_check():
+def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy", 
@@ -89,6 +87,7 @@ async def health_check():
         "database": "connected"
     }
 
+### main ### 
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))

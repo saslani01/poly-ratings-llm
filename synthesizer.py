@@ -18,146 +18,116 @@ class ProfessorSynthesizer:
         self.client = OpenAI(api_key=os.getenv("OPEN_AI_API_KEY"))
         self.parser = QueryParser(db_path)
         self.retriever = ChunkRetriever(db_path)
-        
+
+    def _error(self, message, code):
+        """Construct a specific error and status code for the frontend"""
+        return {"error": message, "code": code}, 0 # 0 is just the tokens used
+
+    def _build_response(self, prof_info, excerpts, analysis):
+        """Assemble the standard success payload"""
+        return {
+            "professor": prof_info,
+            "stats": {
+                "overall_rating": prof_info["overall_rating"],
+                "material_clear": prof_info["material_clear"],
+                "student_difficulties": prof_info["student_difficulties"],
+                "num_evals": prof_info["num_evals"],
+            },
+            "excerpts": excerpts,
+            "analysis": analysis,
+        }
+
     def get_numerical_professor_info(self, professor_id):
         """Get basic professor information and numerical ratings"""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT first_name, last_name, department, overall_rating,
                        material_clear, student_difficulties, num_evals
-                FROM professors 
+                FROM professors
                 WHERE id = ?
-            """, (professor_id,))
-            
+                """,
+                (professor_id,),
+            )
             row = cursor.fetchone()
             if not row:
                 return None
-                
             return {
                 "name": f"{row[0]} {row[1]}",
                 "department": row[2],
                 "overall_rating": row[3],
                 "material_clear": row[4],
                 "student_difficulties": row[5],
-                "num_evals": row[6]
+                "num_evals": row[6],
             }
-    
+
     def process_query(self, user_query):
         """Main pipeline: parse -> resolve -> get chunks -> generate answer"""
-        
         parsed = self.parser.parse_query(user_query)
-        print(f"Parsed query: {parsed}")
-        
-        resolved_prof_course = self.parser.resolve_professor_course(parsed)
-        print(f"Resolved: {resolved_prof_course}")
-        
-        if not resolved_prof_course["professor_id"]:
-            return {"error": "Professor not found in database"}, 0
-        
-        resolved_prof_course["original_query"] = user_query
+        resolved = self.parser.resolve_professor_course(parsed)
 
-        prof_info = self.get_numerical_professor_info(resolved_prof_course["professor_id"])
+        if not resolved["professor_id"]:
+            return self._error("No professor matched your query. Check the spelling or try their full name.", 404)
+
+        resolved["original_query"] = user_query
+
+        prof_info = self.get_numerical_professor_info(resolved["professor_id"])
         if not prof_info:
-            return {"error": "Professor information not available"}, 0
-        
+            return self._error("We found this professor but their rating data is missing.", 500)
+
         chunks = self.retriever.get_chunks(
-            resolved_prof_course["professor_id"], 
-            resolved_prof_course["aspect"], 
-            resolved_prof_course["course_code"], 
-            limit=10
+            resolved["professor_id"],
+            resolved["aspect"],
+            resolved["course_code"],
+            limit=10,
         )
-        
         if not chunks:
-            response_data = {
-                "professor": prof_info,
-                "stats": {
-                    "overall_rating": prof_info["overall_rating"],
-                    "material_clear": prof_info["material_clear"],
-                    "student_difficulties": prof_info["student_difficulties"],
-                    "num_evals": prof_info["num_evals"]
-                },
-                "excerpts": [],
-                "analysis": "No Review Excerpts found for this query."
-            }
-            return response_data, 0
-                
-        response_data, tokens_used = self.generate_summary(prof_info, chunks, resolved_prof_course)
-        
-        return response_data, tokens_used
-    
+            return self._build_response(prof_info, [], "No review excerpts found for this query."), 0
+
+        return self.generate_summary(prof_info, chunks, resolved)
+
     def filter_chunks_by_aspect(self, chunks, target_aspect):
         """Filter chunks by aspect, fallback to 'overall' if no matches found"""
         if not target_aspect:
             return chunks
-        
-        matching_chunks = [chunk for chunk in chunks if chunk['aspect'].lower() == target_aspect.lower()]
-        
-        if matching_chunks:
-            return matching_chunks
-        
-        overall_chunks = [chunk for chunk in chunks if chunk['aspect'].lower() == 'overall']
-        
-        if overall_chunks:
-            return overall_chunks
-        
+
+        matching = [c for c in chunks if c["aspect"].lower() == target_aspect.lower()]
+        if matching:
+            return matching
+
+        overall = [c for c in chunks if c["aspect"].lower() == "overall"]
+        if overall:
+            return overall
+
         return None
-    
+
     def generate_summary(self, prof_info, chunks, resolved):
         """Generate answer using chunks and professor info"""
-        
-        filtered_chunks = self.filter_chunks_by_aspect(chunks, resolved["aspect"])
-        
-        if not filtered_chunks:
-            response_data = {
-                "professor": prof_info,
-                "stats": {
-                    "overall_rating": prof_info["overall_rating"],
-                    "material_clear": prof_info["material_clear"],
-                    "student_difficulties": prof_info["student_difficulties"],
-                    "num_evals": prof_info["num_evals"]
-                },
-                "excerpts": [],
-                "analysis": "No specific review excerpts available for this query."
-            }
-            return response_data, 0
-        
-        prompt = f"""Based on the following student review excerpts about Professor {prof_info['name']} from {prof_info['department']} department, answer this question: "{resolved.get('original_query', 'Tell me about this professor?')}"
+        filtered = self.filter_chunks_by_aspect(chunks, resolved["aspect"])
+        if not filtered:
+            return self._build_response(prof_info, [], "No specific review excerpts available for this query."), 0
 
-Student Review Excerpts:
-"""
-        
-        for chunk in filtered_chunks:
+        question = resolved.get("original_query", "Tell me about this professor?")
+        prompt = (
+            f'Based on the following student review excerpts about Professor {prof_info["name"]} '
+            f'from {prof_info["department"]} department, answer this question: "{question}"\n\n'
+            "Student Review Excerpts:\n"
+        )
+        for chunk in filtered:
             prompt += f"- [{chunk['aspect']}] {chunk['content']}\n"
-                
+
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3,
                 max_tokens=300,
-                timeout=30
+                timeout=30,
             )
-            
-            answer_text = response.choices[0].message.content.strip()
-            
-            token_usage = response.usage
-            total_tokens = token_usage.total_tokens
-            
-            response_data = {
-                "professor": prof_info,
-                "stats": {
-                    "overall_rating": prof_info["overall_rating"],
-                    "material_clear": prof_info["material_clear"],
-                    "student_difficulties": prof_info["student_difficulties"],
-                    "num_evals": prof_info["num_evals"]
-                },
-                "excerpts": [{"aspect": chunk["aspect"], "content": chunk["content"]} for chunk in filtered_chunks],
-                "analysis": answer_text
-            }
-            
-            return response_data, total_tokens
-            
+            answer = response.choices[0].message.content.strip()
+            excerpts = [{"aspect": c["aspect"], "content": c["content"]} for c in filtered]
+            return self._build_response(prof_info, excerpts, answer), response.usage.total_tokens
         except Exception as e:
-            return {"error": f"Error generating answer: {e}"}, 0
+            print(f"OpenAI error: {e}")
+            return self._error("Couldn't generate the summary right now. Please try again shortly.", 503)

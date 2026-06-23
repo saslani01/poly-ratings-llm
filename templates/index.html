@@ -4,52 +4,60 @@
     <title>ProfGPT - Cal Poly Professor Reviews</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="static/style.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="header">
-        <div class="header-content">
-            <h1>ProfGPT<span class="mustang-accent">🐎</span></h1>
-            <p class="subtitle">AI-Powered Professor Analysis for Cal Poly</p>
-            <p class="beta-info">
-                <span class="beta-badge">(BETA) INCOMPLETE DATA</span>
-                Updated April 2026
-            </p>
-        </div>
-    </div>
+<body class="bg-light">
+    <header class="bg-success text-white text-center py-4 mb-4 shadow-sm">
+        <h1 class="fw-bold mb-1">ProfGPT 🐎</h1>
+        <p class="mb-1 opacity-75">AI-Powered Professor Analysis for Cal Poly</p>
+        <p class="small mb-0 opacity-75">
+            <span class="badge bg-light text-dark">(BETA) INCOMPLETE DATA</span>
+            Updated April 2026
+        </p>
+    </header>
 
-    <div class="container">
-        <div class="search-card">
-            <form id="queryForm">
-                <div class="form-group">
-                    <label>Ask about your professor:</label>
-                    <input type="text" id="query" placeholder="e.g. How is Dr. Keen grading?" required>
+    <main class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-7">
+                <div class="card shadow-sm border-top border-4 border-gold p-4">
+                    <form id="queryForm">
+                        <label for="query" class="form-label fw-semibold text-success">
+                            Ask about your professor:
+                        </label>
+                        <input id="query" type="text" class="form-control form-control-lg mb-3"
+                            placeholder="e.g. How is Dr. Keen grading?">
+                        <button type="submit" class="btn btn-success btn-lg w-100 text-uppercase">
+                            Analyze Professor
+                        </button>
+                        <p class="text-muted small text-center mt-2 mb-0">
+                            Limited to 10 searches per minute
+                        </p>
+                    </form>
                 </div>
-                <button type="submit">Analyze Professor</button>
-                <p class="rate-limit-info">
-                    ⚡ Limited to 10 searches per minute
-                </p>
-            </form>
-            
-            <div id="result" class="result" style="display: none;"></div>
+                <div id="result" class="mt-4"></div>
+            </div>
         </div>
-    </div>
+    </main>
 
-    <div class="footer">
-        <p>Made with 💚 for Cal Poly Students</p>
-        <p class="footer-small">
-            Data sourced from <a href="https://polyratings.dev/" target="_blank">polyratings</a><br>
+    <footer class="bg-success text-white text-center py-4 mt-5">
+        <p class="mb-1">Made with 💚 for Cal Poly Students</p>
+        <p class="small opacity-75 mb-1">
+            Data sourced from
+            <a href="https://polyratings.dev/" target="_blank" class="text-white">polyratings</a><br>
             ProfGPT can make mistakes
         </p>
-        <p class="source-link">
-            <a href="https://github.com/saslani01/poly-ratings-llm" target="_blank">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        <p class="mb-0">
+            <a href="https://github.com/saslani01/poly-ratings-llm" target="_blank" class="text-white-50"
+                aria-label="GitHub repository">
+                <svg width="20" height="20" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M56.7937 84.9688C44.4187 83.4688 35.7 74.5625 35.7 63.0313C35.7 58.3438 37.3875 53.2813 40.2 49.9063C38.9812 46.8125 39.1687 40.25 40.575 37.5313C44.325 37.0625 49.3875 39.0313 52.3875 41.75C55.95 40.625 59.7 40.0625 64.2937 40.0625C68.8875 40.0625 72.6375 40.625 76.0125 41.6563C78.9187 39.0313 84.075 37.0625 87.825 37.5313C89.1375 40.0625 89.325 46.625 88.1062 49.8125C91.1062 53.375 92.7 58.1563 92.7 63.0313C92.7 74.5625 83.9812 83.2813 71.4187 84.875C74.6062 86.9375 76.7625 91.4375 76.7625 96.5938L76.7625 106.344C76.7625 109.156 79.1062 110.75 81.9187 109.625C98.8875 103.156 112.2 86.1875 112.2 65.1875C112.2 38.6563 90.6375 17 64.1062 17C37.575 17 16.2 38.6562 16.2 65.1875C16.2 86 29.4187 103.25 47.2312 109.719C49.7625 110.656 52.2 108.969 52.2 106.438L52.2 98.9375C50.8875 99.5 49.2 99.875 47.7 99.875C41.5125 99.875 37.8562 96.5 35.2312 90.2188C34.2 87.6875 33.075 86.1875 30.9187 85.9063C29.7937 85.8125 29.4187 85.3438 29.4187 84.7813C29.4187 83.6563 31.2937 82.8125 33.1687 82.8125C35.8875 82.8125 38.2312 84.5 40.6687 87.9688C42.5437 90.6875 44.5125 91.9063 46.8562 91.9063C49.2 91.9063 50.7 91.0625 52.8562 88.9063C54.45 87.3125 55.6687 85.9063 56.7937 84.9688Z"
+                        fill="currentColor" />
                 </svg>
             </a>
         </p>
-    </div>
-    
+    </footer>
     <script src="static/script.js"></script>
 </body>
 </html>
